@@ -1,28 +1,36 @@
+"""
+repository.py - Data access layer for movie data.
+
+Implements the Repository Pattern:
+- MovieRepository (ABC) defines the data access interface.
+- CSVMovieRepository is the concrete CSV-backed implementation.
+
+This lets the service layer stay independent of the underlying storage.
+"""
+
 import os
 import pandas as pd
 from abc import ABC, abstractmethod
 from typing import Optional
 
+
 class MovieRepository(ABC):
-    """
-    Abstract base class defining the interface for movie data access.
-    """
-    
+    """Abstract base class defining the interface for movie data access."""
+
     @abstractmethod
     def get_all_movies(self) -> pd.DataFrame:
         """Retrieve all movies."""
         pass
-    
+
     @abstractmethod
     def get_movie_by_title(self, title: str) -> Optional[pd.Series]:
         """Retrieve a specific movie by its title."""
         pass
 
+
 class CSVMovieRepository(MovieRepository):
-    """
-    Concrete implementation of MovieRepository reading from/writing to a CSV file.
-    """
-    
+    """Concrete implementation reading from / writing to a CSV file."""
+
     def __init__(self, data_dir: str = "data", filename: str = "movies.csv"):
         self.data_dir = data_dir
         self.file_path = os.path.join(data_dir, filename)
@@ -30,33 +38,30 @@ class CSVMovieRepository(MovieRepository):
         self._load_and_preprocess()
 
     def _load_and_preprocess(self) -> None:
-        """Load data from CSV file or create sample data if not exists."""
+        """Load data from CSV, or create sample data if the file is missing."""
         if not os.path.exists(self.file_path):
             df = self._create_sample_data()
         else:
             df = pd.read_csv(self.file_path)
-            
         self._movies_df = self._preprocess(df)
 
     def _preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean and standardise raw movie dataset."""
+        """Clean and standardise the raw movie dataset."""
         df = df.copy()
-        
-        # Clean text columns
+
         text_columns = ['genre', 'cast', 'plot']
         for col in text_columns:
             if col in df.columns:
                 df[col] = df[col].fillna('').str.lower().str.strip()
-                
-        # Remove duplicate titles
+
         df = df.drop_duplicates(subset=['title'])
-        
-        # Ensure required columns exist
+
+        # ensure required columns exist
         required_columns = ['title', 'genre', 'rating', 'year', 'cast', 'plot']
         for col in required_columns:
             if col not in df.columns:
                 df[col] = ''
-                
+
         return df.reset_index(drop=True)
 
     def _create_sample_data(self) -> pd.DataFrame:
@@ -107,11 +112,11 @@ class CSVMovieRepository(MovieRepository):
                 'Lives intertwine in Los Angeles', 'An underground fight club challenges consumerism', 'Two imprisoned men bond over decades', 'A gladiator seeks revenge', 'A paraplegic marine on an alien world',
                 'A poor boy and wealthy girl fall in love on a doomed ship', 'Superheroes band together to fight an alien invasion', 'Lion prince seeks revenge on his uncle', 'Explorers visit an island with prehistoric creatures',
                 'Hobbits journey to destroy a powerful ring', 'Young wizard attends magic school', 'Heroes fight an evil empire', 'A mafia boss transfers control of his clandestine empire', 'A cynical nightclub owner fights for justice',
-                'A newspaper owner investigates a young man\'s rise', 'A detective obsesses over a mysterious woman', 'A motel keeper spies on guests', 'A beach town faces giant sharks', 'An alien befriends a lonely boy',
+                "A newspaper owner investigates a young man's rise", 'A detective obsesses over a mysterious woman', 'A motel keeper spies on guests', 'A beach town faces giant sharks', 'An alien befriends a lonely boy',
                 'A teen travels through time in a DeLorean', 'A cyborg travels back in time', 'A space crew encounters a deadly alien', 'A bounty hunter tracks androids', 'A boy sees dead people'
             ]
         }
-        
+
         df = pd.DataFrame(sample_data)
         os.makedirs(self.data_dir, exist_ok=True)
         df.to_csv(self.file_path, index=False)

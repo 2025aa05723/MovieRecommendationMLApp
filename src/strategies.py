@@ -12,7 +12,7 @@ class RecommendationStrategy(ABC):
     @abstractmethod
     def recommend(self, movie_title: str, n_recommendations: int = 5) -> List[Tuple[str, float]]:
         """
-        Generate recommendations for a given movie title.
+        Generate recommendations for a movie title.
         
         Args:
             movie_title: Title of the base movie

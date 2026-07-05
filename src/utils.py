@@ -1,6 +1,11 @@
+"""
+utils.py - Helper functions for data filtering and processing.
+"""
+
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any
+
 
 def clean_text(text: str) -> str:
     """
@@ -14,9 +19,8 @@ def clean_text(text: str) -> str:
     """
     if not isinstance(text, str):
         return ""
-    
-    text = text.lower().strip()
-    return text
+    return text.lower().strip()
+
 
 def parse_genres(genre_string: str) -> List[str]:
     """
@@ -30,7 +34,6 @@ def parse_genres(genre_string: str) -> List[str]:
     """
     if not genre_string:
         return []
-    
     return [g.strip() for g in genre_string.split(',')]
 
 def parse_cast(cast_string: str) -> List[str]:
@@ -45,7 +48,6 @@ def parse_cast(cast_string: str) -> List[str]:
     """
     if not cast_string:
         return []
-    
     return [actor.strip() for actor in cast_string.split(',')]
 
 def filter_movies(
