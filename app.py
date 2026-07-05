@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from src.recommender import MovieRecommender
-from src.data_loader import DataLoader
+from src.service import RecommendationService
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
@@ -35,12 +34,9 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 @st.cache_resource
-def load_data():
-    """Load and cache movie data and models"""
-    loader = DataLoader()
-    movies_df = loader.load_movies()
-    recommender = MovieRecommender(movies_df)
-    return movies_df, recommender
+def load_service():
+    """Load and cache recommendation service"""
+    return RecommendationService()
 
 def display_movie_card(movie_info, score=None):
     """Display a movie information card"""
@@ -68,8 +64,9 @@ def main():
     st.title("🎬 Movie Recommendation Engine")
     st.markdown("*Discover your next favorite movie using AI-powered recommendations*")
     
-    # Load data
-    movies_df, recommender = load_data()
+    # Load data via Recommendation Service
+    service = load_service()
+    movies_df = service.get_all_movies()
     
     # Sidebar filters
     st.sidebar.header("⚙️ Filters & Settings")
@@ -130,23 +127,13 @@ def main():
             
             st.divider()
             
-            # Get recommendations
+            # Get recommendations via the Recommendation Service (Strategy Pattern)
             with st.spinner(f"🔄 Getting {recommendation_type} recommendations..."):
-                if recommendation_type == "Content-Based":
-                    recommendations = recommender.content_based_recommendations(
-                        selected_movie,
-                        n_recommendations=num_recommendations
-                    )
-                elif recommendation_type == "Collaborative":
-                    recommendations = recommender.collaborative_recommendations(
-                        selected_movie,
-                        n_recommendations=num_recommendations
-                    )
-                else:  # Hybrid
-                    recommendations = recommender.hybrid_recommendations(
-                        selected_movie,
-                        n_recommendations=num_recommendations
-                    )
+                recommendations = service.get_recommendations(
+                    method=recommendation_type,
+                    movie_title=selected_movie,
+                    n_recommendations=num_recommendations
+                )
             
             st.subheader(f"✨ Top {num_recommendations} Recommendations")
             
